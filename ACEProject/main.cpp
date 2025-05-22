@@ -1,87 +1,47 @@
 #include <string>
 #include <iostream>
-
-#include <ace/Thread_Manager.h>
-#include <ace/Message_Queue.h>
-
-#include <ace/Message_Block.h>
-
-#include <ace/Task.h>
-#include <ace/OS.h>
-
 #include "x_ace_queue.h"
+#include "x_ace_thread_pool.h"
 
-class ThreadPoolTask : public ACE_Task<ACE_MT_SYNCH>
+#include <ace/OS.h>
+#include <ace/Log_Msg.h>
+#include <ace/INET_Addr.h>
+
+char buffer[30] = { 0 };
+
+char reset(char& c)
 {
-public:
-	// 初始化线程池
-	int open(int num_threads)
-	{
-		return activate(THR_NEW_LWP | THR_JOINABLE, num_threads);
-	}
+	return c = '\0';
+}
 
-	// 关闭线程池
-	int close(u_long flags = 0)
-	{
-		// 停止消息队列
-		msg_queue()->deactivate();
+void print_ip_addr(const char* doc, const ACE_INET_Addr& addr)
+{
+	addr.addr_to_string(buffer, sizeof(buffer));
+	ACE_DEBUG((LM_DEBUG, "%s addr_to_string buffer:[%s]\n", doc, buffer));
 
-		return wait();
-	}
+	ACE_DEBUG((LM_DEBUG, "%s get_host_addr:[%s]\n", doc, addr.get_host_addr()));
 
-	// 线程入口函数
-	int svc() override
-	{
-		ACE_Message_Block* mb = nullptr;
-		while (msg_queue()->dequeue_head(mb) != -1) {
-			// 处理任务
-			process_task(mb);
-			mb->release(); // 释放消息块
-		}
-		return 0;
-	}
+	ACE_DEBUG((LM_DEBUG, "%s get_port_number:[%d]\n\n", doc, addr.get_port_number()));
 
-	// 捕获线程异常
-	int handle_exception(ACE_HANDLE handle) override {
-		ACE_DEBUG((LM_ERROR, "Thread %t crashed!\n"));
-		return -1;
-	}
-
-	int submit_task(ACE_Message_Block* task)
-	{
-		return msg_queue()->enqueue_tail(task);
-	}
-
-private:
-	void process_task(ACE_Message_Block *mb)
-	{
-		ACE_DEBUG((LM_INFO, "Processing task: %s\n", mb->rd_ptr()));
-	}
-};
-
+	std::transform(buffer, buffer + sizeof(buffer), buffer, reset);
+}
 
 int ACE_TMAIN(int argc, char** args)
 {
+	{
+		char* env = nullptr;
+		env = ACE_OS::getenv("Path");
+		std::cout << "env: " << env << std::endl;
+	}
+
+	{
+		ACE_INET_Addr addr("127.0.0.1:3305");
+		print_ip_addr("local address", addr);
+	}
+
 	//run_ace_queue(argc, args);
 
-	ThreadPoolTask pool;
-
-	if (pool.open(8) != 0)
-	{
-		ACE_ERROR_RETURN((LM_ERROR, "Failed to open thread pool\n"), 1);
-	}
-
-	for (auto i = 0; i < 100; i++)
-	{
-		ACE_Message_Block* mb = new ACE_Message_Block(1024);
-		std::snprintf(mb->wr_ptr(), 1024, "Task-%d", i);
-		mb->wr_ptr(std::strlen(mb->wr_ptr()) + 1);
-		pool.submit_task(mb);
-	}
-
-	pool.close();
-
-	ACE_Thread_Manager::instance()->wait();
+	run_thread_pool(argc, args);
 
 	return 0;
 }

@@ -21,9 +21,21 @@
     <ClCompile Include="x_ace_queue.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="x_ace_thread_pool.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="x_ace_reactor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x_ace_queue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="x_ace_thread_pool.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="x_ace_reactor.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
