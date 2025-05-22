@@ -4,60 +4,84 @@
 #include <ace/Thread_Manager.h>
 #include <ace/Message_Queue.h>
 
+#include <ace/Message_Block.h>
 
-void* create_vairous_record(void* ace_message_queue);
+#include <ace/Task.h>
+#include <ace/OS.h>
 
-void* get_vairous_record(void* ace_message_queue);
+#include "x_ace_queue.h"
 
-
-int main(int argc, char** args)
+class ThreadPoolTask : public ACE_Task<ACE_MT_SYNCH>
 {
-	ACE_Message_Queue<ACE_MT_SYNCH>* various_record_queue = new ACE_Message_Queue<ACE_MT_SYNCH>;
+public:
+	// 初始化线程池
+	int open(int num_threads)
+	{
+		return activate(THR_NEW_LWP | THR_JOINABLE, num_threads);
+	}
 
-	ACE_Thread_Manager::instance()->spawn(
-		ACE_THR_FUNC(create_vairous_record),
-		various_record_queue,
-		THR_NEW_LWP | THR_DETACHED);
+	// 关闭线程池
+	int close(u_long flags = 0)
+	{
+		// 停止消息队列
+		msg_queue()->deactivate();
 
-	ACE_Thread_Manager::instance()->spawn(
-		ACE_THR_FUNC(get_vairous_record),
-		various_record_queue,
-		THR_NEW_LWP | THR_DETACHED);
+		return wait();
+	}
+
+	// 线程入口函数
+	int svc() override
+	{
+		ACE_Message_Block* mb = nullptr;
+		while (msg_queue()->dequeue_head(mb) != -1) {
+			// 处理任务
+			process_task(mb);
+			mb->release(); // 释放消息块
+		}
+		return 0;
+	}
+
+	// 捕获线程异常
+	int handle_exception(ACE_HANDLE handle) override {
+		ACE_DEBUG((LM_ERROR, "Thread %t crashed!\n"));
+		return -1;
+	}
+
+	int submit_task(ACE_Message_Block* task)
+	{
+		return msg_queue()->enqueue_tail(task);
+	}
+
+private:
+	void process_task(ACE_Message_Block *mb)
+	{
+		ACE_DEBUG((LM_INFO, "Processing task: %s\n", mb->rd_ptr()));
+	}
+};
+
+
+int ACE_TMAIN(int argc, char** args)
+{
+	//run_ace_queue(argc, args);
+
+	ThreadPoolTask pool;
+
+	if (pool.open(8) != 0)
+	{
+		ACE_ERROR_RETURN((LM_ERROR, "Failed to open thread pool\n"), 1);
+	}
+
+	for (auto i = 0; i < 100; i++)
+	{
+		ACE_Message_Block* mb = new ACE_Message_Block(1024);
+		std::snprintf(mb->wr_ptr(), 1024, "Task-%d", i);
+		mb->wr_ptr(std::strlen(mb->wr_ptr()) + 1);
+		pool.submit_task(mb);
+	}
+
+	pool.close();
 
 	ACE_Thread_Manager::instance()->wait();
 
 	return 0;
-}
-
-void* create_vairous_record(void* ace_message_queue)
-{
-
-	ACE_Message_Queue<ACE_MT_SYNCH>* p_queue = (ACE_Message_Queue<ACE_MT_SYNCH>*)ace_message_queue;
-	int i = 0;
-	while (i < 10000000)
-	{
-		ACE_Message_Block* mbl = new ACE_Message_Block(10);//在这里创建消息
-		std::string temp = std::to_string(++i);
-		mbl->copy(temp.c_str());
-		p_queue->enqueue_tail(mbl);//消息被放到队列中（用指针引用消息实体）
-	}
-	return nullptr;
-}
-
-void* get_vairous_record(void* ace_message_queue)
-{
-
-	ACE_Message_Queue<ACE_MT_SYNCH>* p_queue = (ACE_Message_Queue<ACE_MT_SYNCH>*)ace_message_queue;
-	while (true)
-	{
-		ACE_Message_Block* mbl = nullptr;
-		p_queue->dequeue_head(mbl);//消息出队，出队的消息应该在用完之后被释放
-		if (mbl)
-		{
-			std::cout << mbl->rd_ptr() << std::endl;
-			mbl->release();//消息已经用完，释放消息
-		}
-	}
-	return nullptr;
-
 }
