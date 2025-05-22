@@ -8,10 +8,16 @@
 class EchoHandler : public ACE_Event_Handler
 {
 	ACE_HANDLE handle_;
-
+	long time_handle_;
 public:
-	EchoHandler(ACE_HANDLE handle) : handle_{ handle } {
+	EchoHandler(ACE_HANDLE handle) : handle_{ handle }, time_handle_{} {
+		this->reactor(ACE_Reactor::instance());
+		time_handle_ = this->reactor()->schedule_timer(this, 0, ACE_Time_Value(1), ACE_Time_Value(3));
+	}
 
+	~EchoHandler() override
+	{
+		ACE_Reactor::instance()->cancel_timer(this->time_handle_);
 	}
 
 	int handle_input(ACE_HANDLE handle) override {
@@ -22,6 +28,13 @@ public:
 			return -1;
 		}
 		ACE_OS::send(handle_, buf, cnt);
+		return 0;
+	}
+
+	// 定时器事件
+	int handle_timeout(const ACE_Time_Value& current_time, const void* act = 0) override
+	{
+
 		return 0;
 	}
 
