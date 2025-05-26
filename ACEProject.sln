@@ -11,6 +11,10 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		HDebug|x64 = HDebug|x64
+		HDebug|x86 = HDebug|x86
+		HRelease|x64 = HRelease|x64
+		HRelease|x86 = HRelease|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -19,6 +23,14 @@ Global
 		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.Debug|x64.Build.0 = Debug|x64
 		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.Debug|x86.ActiveCfg = Debug|Win32
 		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.Debug|x86.Build.0 = Debug|Win32
+		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.HDebug|x64.ActiveCfg = HDebug|x64
+		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.HDebug|x64.Build.0 = HDebug|x64
+		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.HDebug|x86.ActiveCfg = HDebug|Win32
+		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.HDebug|x86.Build.0 = HDebug|Win32
+		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.HRelease|x64.ActiveCfg = HRelease|x64
+		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.HRelease|x64.Build.0 = HRelease|x64
+		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.HRelease|x86.ActiveCfg = HRelease|Win32
+		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.HRelease|x86.Build.0 = HRelease|Win32
 		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.Release|x64.ActiveCfg = Release|x64
 		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.Release|x64.Build.0 = Release|x64
 		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.Release|x86.ActiveCfg = Release|Win32
