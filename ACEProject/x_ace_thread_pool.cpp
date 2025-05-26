@@ -74,7 +74,7 @@ int run_thread_pool(int argc, char** args)
 		ACE_ERROR_RETURN((LM_ERROR, "Failed to open thread pool\n"), 1);
 	}
 
-	for (auto i = 0; i < 100; i++)
+	for (auto i = 0; i < 20; i++)
 	{
 		ACE_Message_Block* mb = new ACE_Message_Block(256);
 		std::snprintf(mb->wr_ptr(), 256, "Task-%d", i);

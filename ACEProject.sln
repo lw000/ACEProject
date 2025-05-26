@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ACEProject", "ACEProject\ACEProject.vcxproj", "{D69D49FC-70FB-48CD-B384-3EC00C36818B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x_reactor_demo", "x_reactor_demo\x_reactor_demo.vcxproj", "{B5CAFB36-B2E6-46E6-BA6A-A82E2C6D8C48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.Release|x64.Build.0 = Release|x64
 		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.Release|x86.ActiveCfg = Release|Win32
 		{D69D49FC-70FB-48CD-B384-3EC00C36818B}.Release|x86.Build.0 = Release|Win32
+		{B5CAFB36-B2E6-46E6-BA6A-A82E2C6D8C48}.Debug|x64.ActiveCfg = Debug|x64
+		{B5CAFB36-B2E6-46E6-BA6A-A82E2C6D8C48}.Debug|x64.Build.0 = Debug|x64
+		{B5CAFB36-B2E6-46E6-BA6A-A82E2C6D8C48}.Debug|x86.ActiveCfg = Debug|Win32
+		{B5CAFB36-B2E6-46E6-BA6A-A82E2C6D8C48}.Debug|x86.Build.0 = Debug|Win32
+		{B5CAFB36-B2E6-46E6-BA6A-A82E2C6D8C48}.Release|x64.ActiveCfg = Release|x64
+		{B5CAFB36-B2E6-46E6-BA6A-A82E2C6D8C48}.Release|x64.Build.0 = Release|x64
+		{B5CAFB36-B2E6-46E6-BA6A-A82E2C6D8C48}.Release|x86.ActiveCfg = Release|Win32
+		{B5CAFB36-B2E6-46E6-BA6A-A82E2C6D8C48}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

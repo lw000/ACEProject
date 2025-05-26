@@ -15,33 +15,30 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="AcceptHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="x_ace_queue.cpp">
+    <ClCompile Include="client.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="x_ace_thread_pool.cpp">
+    <ClCompile Include="ReadHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="x_ace_reactor.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="x_ace_server.cpp">
+    <ClCompile Include="server.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="x_ace_queue.h">
+    <ClInclude Include="AcceptHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="x_ace_thread_pool.h">
+    <ClInclude Include="common.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="x_ace_reactor.h">
+    <ClInclude Include="ReadHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="x_ace_server.h">
+    <ClInclude Include="client.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
