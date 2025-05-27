@@ -10,6 +10,8 @@
 #include <ace/OS.h>
 #include <ace/Log_Msg.h>
 
+const u_short PORT = 9998;
+
 /**
  * The timeout value for connections. (30 seconds)
  */
@@ -17,27 +19,42 @@ static const ACE_Time_Value connTimeout(30);
 
 class EchoHandler : public ACE_Event_Handler
 {
-	ACE_HANDLE handle_;
-	long time_handle_;
+	ACE_SOCK_Stream peer_stream_;
+	//long time_handle_;
 public:
-	EchoHandler(ACE_HANDLE handle) : handle_{ handle }, time_handle_{} {
+	EchoHandler(ACE_SOCK_Stream& stream) : peer_stream_{ stream }/*, time_handle_{}*/ {
 		this->reactor(ACE_Reactor::instance());
-		time_handle_ = this->reactor()->schedule_timer(this, 0, ACE_Time_Value(1), ACE_Time_Value(3));
+		reactor()->register_handler(this, ACE_Event_Handler::READ_MASK);
+
+		//time_handle_ = this->reactor()->schedule_timer(this, 0, ACE_Time_Value(1), ACE_Time_Value(3));
 	}
 
 	~EchoHandler() override
 	{
-		ACE_Reactor::instance()->cancel_timer(this->time_handle_);
+		//ACE_Reactor::instance()->cancel_timer(this->time_handle_);
 	}
+
+public:
+	ACE_HANDLE get_handle() const override { return peer_stream_.get_handle(); }
 
 	int handle_input(ACE_HANDLE handle) override {
 		char buf[1024];
-		ssize_t cnt = ACE_OS::recv(handle_, buf, sizeof(buf), 0);
-		if (cnt <= 0) {
-			ACE_Reactor::instance()->remove_handler(this, ACE_Event_Handler::READ_MASK);
+		ssize_t bytes_read = peer_stream_.recv(buf, sizeof(buf), 0);
+		if (bytes_read <= 0) {
+			if (bytes_read == 0)
+				ACE_DEBUG((LM_INFO, "[SERVER] Client disconnected\n"));
+			else
+				ACE_ERROR((LM_ERROR, "[SERVER] recv error: %m\n"));
+			reactor()->remove_handler(this, ACE_Event_Handler::ALL_EVENTS_MASK);
+			peer_stream_.close();
+			delete this;
 			return -1;
 		}
-		ACE_OS::send(handle_, buf, cnt);
+
+		ssize_t bytes_sent = peer_stream_.send(buf, bytes_read);
+		if (bytes_sent != bytes_read)
+			ACE_ERROR((LM_ERROR, "[SERVER] send error: %m\n"));
+
 		return 0;
 	}
 
@@ -47,18 +64,17 @@ public:
 
 		return 0;
 	}
-
-	ACE_HANDLE get_handle() const override { return handle_; }
 };
 
-class Acceptor : public ACE_Event_Handler
+class ServerHandler : public ACE_Event_Handler
 {
 	ACE_SOCK_Acceptor acceptor_;
 
 public:
-	Acceptor(u_short port) : acceptor_{ ACE_INET_Addr("0.0.0.0", port) }
+	ServerHandler(u_short port) : acceptor_{ port }
 	{
-
+		this->reactor(ACE_Reactor::instance());
+		reactor()->register_handler(this, ACE_Event_Handler::READ_MASK);
 	}
 
 public:
@@ -71,11 +87,32 @@ public:
 
 	int handle_input(ACE_HANDLE handle) override {
 		ACE_SOCK_Stream stream;
-		if (acceptor_.accept(stream))
-		{
-			new EchoHandler(stream.get_handle());
+		ACE_INET_Addr client_addr;
+
+		if (acceptor_.accept(stream, &client_addr) == -1) {
+			ACE_ERROR((LM_ERROR, "[SERVER] accept error: %m\n"));
+			return -1;
 		}
 
+		ACE_DEBUG((LM_INFO, "[SERVER] New connection from %s:%d\n",
+			client_addr.get_host_name(), client_addr.get_port_number()));
+
+		new EchoHandler(stream); // 创建处理器
+
+		return 0;
+	}
+};
+
+class ShutdownHandler : public ACE_Event_Handler
+{
+public:
+	int handle_signal(int signum, siginfo_t* = 0, ucontext_t* = 0) override {
+
+		if (signum == SIGINT)
+		{
+			ACE_DEBUG((LM_INFO, "\n[SERVER] Shutting down...\n"));
+			ACE_Reactor::instance()->end_reactor_event_loop();
+		}
 		return 0;
 	}
 };
@@ -84,10 +121,9 @@ void client_worker()
 {
 	ACE_OS::sleep(ACE_Time_Value(2, 0));
 
-	ACE_INET_Addr serverAddr(8080, "127.0.0.1");
-
 	ACE_SOCK_Stream stream;
 	ACE_SOCK_Connector connector;
+	ACE_INET_Addr serverAddr(PORT, "127.0.0.1");
 
     // connect to the server and get the stream
     if (connector.connect(stream, serverAddr) == -1) {
@@ -96,6 +132,9 @@ void client_worker()
             ACE_TEXT("server. (errno = %i: %m)\n"), ACE_ERRNO_GET));
         return;
     }
+
+	ACE_DEBUG((LM_INFO, "[CLIENT] Connected to %s:%d\n",
+		serverAddr.get_host_addr(), serverAddr.get_port_number()));
 
 	while (1)
 	{
@@ -132,7 +171,6 @@ void client_worker()
 		}
 	};
     
-
     // close the current stream
     if (stream.close() == -1) {
         ACE_ERROR((LM_ERROR, ACE_TEXT("%N:%l: Failed to close ")
@@ -146,8 +184,13 @@ int run_reactor(int argc, char** args)
 	//std::thread t(client_worker);
 	//t.detach();
 
-	Acceptor acceptor(8080);
-	ACE_Reactor::instance()->register_handler(&acceptor, ACE_Event_Handler::ACCEPT_MASK);
+	ServerHandler acceptor(PORT);
+	ShutdownHandler shutdown;
+
+	// 注册信号处理器
+	ACE_Reactor::instance()->register_handler(SIGINT, &shutdown);
+
+	ACE_DEBUG((LM_INFO, "[SERVER] Listening on port %d\n", PORT));
 	ACE_Reactor::instance()->run_reactor_event_loop();
 
 	return 0;
