@@ -9,7 +9,7 @@
 #include <ace/Message_Block.h>
 
 #include <ace/OS.h>
-
+#include <ace/Refcounted_Auto_Ptr.h>
 
 class ThreadPoolTask : public ACE_Task<ACE_MT_SYNCH>
 {
@@ -88,14 +88,32 @@ public:
 
 constexpr auto THREAD_COUNT = 8;
 
+class MessageData
+{
+public:
+	int age;
+	std::string name;
+
+public:
+	~MessageData()
+	{
+
+	}
+
+};
+
 int run_thread_pool(int argc, char** args)
 {
 	//run_ace_queue(argc, args);
 
+	{
+		ACE_Refcounted_Auto_Ptr<MessageData, ACE_Null_Mutex> q(new MessageData{30, "levi"});
+	}
+
 	WorkerTask task;
 	task.activate(THR_NEW_LWP | THR_JOINABLE, THREAD_COUNT);
 
-	for (auto i = 0; i < 100; i++)
+	for (auto i = 0; i < 1000; i++)
 	{
 		ACE_Message_Block* mb = new ACE_Message_Block(256);
 		std::snprintf(mb->wr_ptr(), 256, "Task-%d", i);

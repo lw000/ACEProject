@@ -95,9 +95,9 @@ int ACE_TMAIN(int argc, char** args)
 #if 1
 	//run_ace_queue(argc, args);
 
-	run_thread_pool(argc, args);
+	//run_thread_pool(argc, args);
 
-	//run_reactor(argc, args);
+	run_reactor(argc, args);
 
 	//run_server(argc, args);
 #endif // 0
