@@ -9,6 +9,8 @@
 #include <ace/Thread_Manager.h>
 #include <ace/OS.h>
 
+#include <ace/streams.h>
+
 #if 0
 
 const u_short PORT = 9998;
@@ -117,7 +119,8 @@ class StdinHandler : public ACE_Event_Handler
 public:
     StdinHandler()
     {
-        ACE_Reactor::instance()->register_handler(this, ACE_Event_Handler::READ_MASK | ACE_Event_Handler::WRITE_MASK);
+        this->reactor(ACE_Reactor::instance());
+        this->reactor()->register_handler(this, ACE_Event_Handler::READ_MASK);
     }
 
 public:
@@ -143,6 +146,25 @@ public:
 
 int main(int argc, char** args) {
     
+    {
+        // Create a persistent store.
+        const char* filename = "output.log";
+        ofstream outfile(filename, ios::out | ios::trunc);
+
+        // Check for errors.
+        if (outfile.bad())
+            return 1;
+
+        // Set the ostream.
+        ACE_LOG_MSG->msg_ostream(&outfile);
+
+        ACE_LOG_MSG->set_flags(ACE_Log_Msg::OSTREAM);
+
+        // This message should show up in the ostream.
+        ACE_DEBUG((LM_DEBUG,
+            "fourth message %d, %d, %s\n", 1,2,"this is test message"));
+    }
+
     StdinHandler handler;
     
     ACE_Reactor::instance()->run_reactor_event_loop();
